@@ -1,0 +1,62 @@
+# docker version:  18.06.0+
+# docker-compose version: 1.23.2+
+# zabbix version: 5.2.3
+# curl -L "https://github.com/docker/compose/releases/download/1.27.4/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+# chmod +x /usr/local/bin/docker-compose
+# ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
+version: "3.7"
+services:
+  mysql-server:
+    image: registry.cn-hangzhou.aliyuncs.com/sunrisenan/mysql:5.7
+    container_name: mysql-server
+    hostname: mysql-server
+    env_file:
+      - ./db.env
+    command: ['--character-set-server=utf8mb4', '--collation-server=utf8mb4_unicode_ci']
+    ports:
+      - "3306:3306"
+    expose:
+      - "3306"
+    volumes:
+      - /data/zabbix:/var/lib/mysql
+    networks:
+      - zabbix-net
+    restart: always
+
+  zabbix-server-mysql:
+    image: registry.cn-hangzhou.aliyuncs.com/sunrisenan/zabbix-server-mysql:centos_8.3
+    container_name: zabbix-server-mysql
+    hostname: zabbix-server-mysql
+    ports:
+      - "10051:10051"
+    env_file:
+      - ./zabbix.env
+    links:
+      - mysql-server:mysql
+    depends_on:
+      - mysql-server 
+    networks:
+      - zabbix-net
+    restart: always
+
+  zabbix-web-nginx-mysql:
+    image: registry.cn-hangzhou.aliyuncs.com/sunrisenan/zabbix-web-nginx-mysql:5.2.3_font
+    container_name: zabbix-web-nginx-mysql
+    hostname: zabbix-web-nginx-mysql
+    ports:
+      - "8080:8080"
+    env_file:
+      - ./web.env
+    links:
+      - mysql-server:mysql
+      - zabbix-server-mysql:zabbix-server
+    depends_on:
+      - mysql-server
+      - zabbix-server-mysql
+    networks:
+      - zabbix-net
+    restart: always
+
+networks:
+  zabbix-net:
+    driver: bridge
