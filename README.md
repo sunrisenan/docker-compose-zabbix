@@ -91,3 +91,27 @@ sudo yum install python-pip sudo pip install --upgrade pip
   # 删除服务，并删除服务产生的网络，存储等，并且会关闭服务的守护docker-compose down
   ```
 
+
+
+**总结**
+
+```shell
+# docker部署
+yum install -y yum-utils device-mapper-persistent-data lvm2
+yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+yum install -y docker-ce
+systemctl start docker
+systemctl enable docker
+
+# docker-compose部署
+curl -L "https://github.com/docker/compose/releases/download/1.27.4/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+chmod +x /usr/local/bin/docker-compose
+ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
+
+# zabbix部署
+mkdir -p /data/zabbix/
+mkdir -p /application/app && cd /application/app
+git clone https://github.com/sunrisenan/docker-compose-zabbix.git
+docker-compose up -d && docker-compose logs -f
+```
+
